@@ -5,57 +5,70 @@ import pickle
 import re
 
 
-# 🔥 Load model + vectorizer
 model = pickle.load(open("model.pkl", "rb"))
 vectorizer = pickle.load(open("vectorizer.pkl", "rb"))
 
 app = Flask(__name__)
-CORS(app) # 🔥 allows React to connect
+CORS(app)
 
-# 🔧 Clean text
 def clean_text(text):
     text = str(text).lower()
     text = re.sub(r'[^a-zA-Z\s]', '', text)
     return text
 
-# 🔧 Keyword logic
-def keyword_score(text):
+def keyword_analysis(text):
     fake_keywords = ["breaking", "shocking", "secret", "exposed", "viral", "leaked"]
     real_keywords = ["official", "confirmed", "announced", "report"]
 
-    text = text.lower()
+    text_lower = text.lower()
 
-    fake_score = sum(1 for w in fake_keywords if w in text)
-    real_score = sum(1 for w in real_keywords if w in text)
+    fake_matches = [w for w in fake_keywords if w in text_lower]
+    real_matches = [w for w in real_keywords if w in text_lower]
 
-    return fake_score, real_score
+    return {
+        "fake_score": len(fake_matches),
+        "real_score": len(real_matches),
+        "fake_keywords": fake_matches,
+        "real_keywords": real_matches
+    }
 
-# 🔥 Prediction logic
 def predict_news(text):
-
     clean = clean_text(text)
-
     vector = vectorizer.transform([clean])
+
     pred = model.predict(vector)[0]
 
-    fake_score, real_score = keyword_score(text)
+    # confidence (basic simulation if model doesn't provide prob)
+    try:
+        prob = model.predict_proba(vector)[0]
+        confidence = max(prob)
+    except:
+        confidence = 0.75  # fallback
+
+    keyword_data = keyword_analysis(text)
 
     word_len = len(text.split())
 
+    # Rule-based override
     if word_len < 20:
-        if fake_score >= 2:
-            return "Fake News"
-        elif real_score >= 2:
-            return "Real News"
+        if keyword_data["fake_score"] >= 2:
+            prediction = "Fake News"
+        elif keyword_data["real_score"] >= 2:
+            prediction = "Real News"
         else:
-            return "Uncertain News"
+            prediction = "Uncertain News"
+    else:
+        prediction = "Real News" if pred == 1 else "Fake News"
 
-    return "Real News" if pred == 1 else "Fake News"
+    return {
+        "prediction": prediction,
+        "confidence": round(confidence * 100, 2),
+        "word_count": word_len,
+        "analysis": keyword_data
+    }
 
-# 🚀 API route
 @app.route("/predict", methods=["POST"])
 def predict():
-
     data = request.get_json()
     text = data.get("text", "")
 
@@ -64,19 +77,23 @@ def predict():
 
     result = predict_news(text)
 
-    return jsonify({
-        "prediction": result
-    })
+    return jsonify(result)
 
-# # 🟢 Run server
-# if __name__ == "__main__":
-#     app.run(debug=True)
+
+@app.route('/')
+def home():
+    return "Backend is running"
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
 
 #making the backend live
-from pyngrok import ngrok
-ngrok.set_auth_token("3BDxsBdE6fOlWPhbp0UNyV8uWS9_2Na3YbeYyhQZAbJt7qtCS")
-if __name__ == "__main__":
-    public_url = ngrok.connect(5000)
-    print("Public URL:", public_url)
+# from pyngrok import ngrok
+# ngrok.set_auth_token("3BDxsBdE6fOlWPhbp0UNyV8uWS9_2Na3YbeYyhQZAbJt7qtCS")
+# if __name__ == "__main__":
+    # public_url = ngrok.connect(5000)
+    # print("Public URL:", public_url)
 
-    app.run(port=5000, debug=False)
+    # app.run(port=5000, debug=False)
