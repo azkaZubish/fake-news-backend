@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pickle
 import re
+from db import predictions_collection
 
 
 model = pickle.load(open("model.pkl", "rb"))
@@ -77,7 +78,19 @@ def predict():
 
     result = predict_news(text)
 
+    predictions_collection.insert_one({
+        "news_text": text,
+        "prediction": result["prediction"],
+        "confidence_score": result["confidence_score"]
+    })
+
     return jsonify(result)
+
+@app.route('/history')
+def history():
+    predictions = list(predictions_collection.find({}, {"_id" : 0}))
+
+    return jsonify(predictions)
 
 
 @app.route('/')
