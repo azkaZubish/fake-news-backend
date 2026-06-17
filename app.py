@@ -81,7 +81,7 @@ def predict():
     predictions_collection.insert_one({
         "news_text": text,
         "prediction": result["prediction"],
-        "confidence_score": result["confidence_score"]
+        "confidence": result["confidence"]
     })
 
     return jsonify(result)
