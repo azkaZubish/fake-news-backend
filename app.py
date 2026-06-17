@@ -70,21 +70,27 @@ def predict_news(text):
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    data = request.get_json()
-    text = data.get("text", "")
+    try:
+        data = request.get_json()
+        text = data.get("text", "")
 
-    if not text:
-        return jsonify({"error": "No input provided"}), 400
+        if not text:
+            return jsonify({"error": "No input provided"}), 400
 
-    result = predict_news(text)
+        result = predict_news(text)
+        print(result)
 
-    predictions_collection.insert_one({
-        "news_text": text,
-        "prediction": result["prediction"],
-        "confidence": result["confidence"]
-    })
+        predictions_collection.insert_one({
+            "news_text": text,
+            "prediction": result["prediction"],
+            "confidence": result["confidence"]
+        })
 
-    return jsonify(result)
+        return jsonify(result)
+    
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/history')
 def history():
