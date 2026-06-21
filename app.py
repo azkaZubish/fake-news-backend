@@ -10,7 +10,10 @@ model = pickle.load(open("model.pkl", "rb"))
 vectorizer = pickle.load(open("vectorizer.pkl", "rb"))
 
 app = Flask(__name__)
-CORS(app)
+CORS(app,origins=[
+    "http://localhost:5173",
+    "https://fake-news-detection-rosy-seven.vercel.app"
+])
 
 def clean_text(text):
     text = str(text).lower()
