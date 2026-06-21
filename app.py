@@ -83,14 +83,11 @@ def predict():
         result = predict_news(text)
         print(result)
 
-        try:
-            predictions_collection.insert_one({
+        predictions_collection.insert_one({
             "news_text": text,
             "prediction": result["prediction"],
-            "confidence": float(result["confidence"])
-            })
-        except Exception as e:
-            print("MongoDB insert failed:", e)
+            "confidence": result["confidence"]
+        })
 
         return jsonify(result)
     
