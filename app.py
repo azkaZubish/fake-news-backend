@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pickle
@@ -88,7 +89,8 @@ def predict():
              predictions_collection.insert_one({
              "news_text": text,
              "prediction": result["prediction"],
-             "confidence": float(result["confidence"])
+             "confidence": float(result["confidence"]),
+             "date": datetime.now()
              })
         except Exception as e:
             print("MongoDB insert failed:", e)
@@ -101,10 +103,10 @@ def predict():
 
 @app.route('/history')
 def history():
-    start = time.time()
+    # start = time.time()
 
-    predictions = list(predictions_collection.find({}, {"_id" : 0}))
-    print(f"DB query took {time.time() - start:.2f} seconds")
+    predictions = list(predictions_collection.find({}, {"_id" : 0}).sort("date", -1).limit(20))
+    # print(f"DB query took {time.time() - start:.2f} seconds")
     return jsonify(predictions)
 
 
