@@ -102,7 +102,7 @@ def predict():
 @app.route('/history')
 def history():
     predictions = list(predictions_collection.find({}, {"_id" : 0}))
-
+    print(predictions)
     return jsonify(predictions)
 
 
