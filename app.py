@@ -1,4 +1,4 @@
-
+import time
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pickle
@@ -101,8 +101,10 @@ def predict():
 
 @app.route('/history')
 def history():
+    start = time.time()
+
     predictions = list(predictions_collection.find({}, {"_id" : 0}))
-    print(predictions)
+    print(f"DB query took {time.time() - start:.2f} seconds")
     return jsonify(predictions)
 
 
