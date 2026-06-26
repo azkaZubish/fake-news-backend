@@ -1,4 +1,4 @@
-# Backend for Fake News Detection
+# Backend for Fake News Detection [Live](https://fake-news-backend-dg3k.onrender.com/)
 A Flask-based backend API for a Fake News Detection system. The application uses a trained Machine Learning model to classify news articles as Real News, Fake News, or Uncertain News. Prediction results are stored in MongoDB Atlas, allowing the frontend dashboard to display detection history and statistics.
 
 ## Features
